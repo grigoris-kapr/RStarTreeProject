@@ -4,8 +4,9 @@
 #include <vector>
 #include <stdexcept>
 #include "abstractBoundedClass.h"
+#include "storable.h"
 
-class Point: public AbstractBoundedClass {
+class Point: public AbstractBoundedClass, public Storable {
     // This class represents a point in a multi-dimensional space.
     // It is derived from AbstractBoundedClass to ensure interoperability.
 private:
@@ -23,6 +24,11 @@ public:
     // Get the start and end coordinates of the point (both are the same)
     const std::vector<double>& getStart() const override { return coords; }
     const std::vector<double>& getEnd() const override { return coords; }
+
+    // Serialize the point to a string representation
+    std::vector<char> serialize() const override;
+    // Deserialize the point from a string representation
+    static Point deserialize(const std::vector<char>& data, int dimensions);
 };
 
 #endif // POINT_H

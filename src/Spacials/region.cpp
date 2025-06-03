@@ -1,5 +1,6 @@
 #include "region.h"
 
+
 // Ger the region's area and margin
 double Region::area() const {
     double area = 1.0;
@@ -72,5 +73,29 @@ Region boundingBox(std::vector<AbstractBoundedClass*> objects) {
         }
     }
 
+    return Region(start, end);
+}
+
+// Serialize the object to a string representation
+std::vector<char> Region::serialize() const {
+    std::vector<char> data;
+    for (int i = 0; i < start.size(); ++i) {
+        Storable::appendData(data, Storable::serializeDouble(start[i]));
+        Storable::appendData(data, Storable::serializeDouble(end[i]));
+    }
+    return data;
+}
+
+// Deserialize the object from a string representation
+Region Region::deserialize(const std::vector<char>& data, int dimensions) {
+    if (data.size() < dimensions * 2 * sizeof(double)) {
+        throw std::invalid_argument("Data size is too small for Region deserialization.");
+    }
+    std::vector<double> start(dimensions);
+    std::vector<double> end(dimensions);
+    for (int i = 0; i < dimensions; ++i) {
+        start[i] = Storable::deserializeDouble(data, i * 2 * sizeof(double));
+        end[i] = Storable::deserializeDouble(data, (i * 2 + 1) * sizeof(double));
+    }
     return Region(start, end);
 }

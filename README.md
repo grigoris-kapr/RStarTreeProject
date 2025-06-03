@@ -17,7 +17,7 @@ A repository for the implementation of the R* tree for the undergraduate CompSci
 - [ ] R-tree
   - [ ] Search
   - [ ] Insert: **will be overwritten in R\***
-    - [ ] ChooseLeaf 
+    - [ ] ChooseLeaf
     - [ ] AdjustTree
   - [ ] Delete
     - [ ] FindLeaf

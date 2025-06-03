@@ -5,8 +5,9 @@
 #include <stdexcept>
 #include "abstractBoundedClass.h"
 #include <limits>
+#include "storable.h"
 
-class Region: public AbstractBoundedClass {
+class Region: public AbstractBoundedClass, public Storable {
     // This class represents a multi-dimensional rectangular region defined by its start and end coordinates.
     // It is derived from AbstractBoundedClass to ensure it can be used in a bounded context.
 private:
@@ -29,6 +30,11 @@ public:
     // Can be used to check both if a path should be taken (overlaps Region) 
     // and if a point is inside the region (overlaps Point)
     bool overlaps(const AbstractBoundedClass& other) const;
+
+    // Storage stuff:
+    std::vector<char> serialize() const override;
+    static Region deserialize(const std::vector<char>& data, int dimensions);
+    
 };
 
 Region::Region(const std::vector<double>& startCoords, const std::vector<double>& endCoords) {
