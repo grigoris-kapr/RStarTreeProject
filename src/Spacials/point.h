@@ -29,6 +29,8 @@ public:
     std::vector<char> serialize() const override;
     // Deserialize the point from a string representation
     static Point deserialize(const std::vector<char>& data, int dimensions);
+    // Get the size of the serialized point
+    static int getSerializedSize(int dimensions);
 };
 
 #endif // POINT_H

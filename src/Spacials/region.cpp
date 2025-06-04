@@ -99,3 +99,8 @@ Region Region::deserialize(const std::vector<char>& data, int dimensions) {
     }
     return Region(start, end);
 }
+
+// Get the size of the serialized object
+int Region::getSerializedSize(int dimensions) {
+    return dimensions * 2 * sizeof(double); // Each dimension has a start and end coordinate
+}

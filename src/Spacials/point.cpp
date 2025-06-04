@@ -21,3 +21,8 @@ static Point deserialize(const std::vector<char>& data, int dimensions) {
     }
     return Point(coords);
 }
+
+// Get the size of the serialized point
+int Point::getSerializedSize(int dimensions) {
+    return dimensions * sizeof(double);
+}

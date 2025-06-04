@@ -31,7 +31,7 @@ public:
 
     std::vector<char> serialize() const override;
     static TreeNode deserialize(const std::vector<char>& data, int maxChildren);
-    
+    static int getSerializedSize(int maxChildren, int dimensions);
 
 };
 

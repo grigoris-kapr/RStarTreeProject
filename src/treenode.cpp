@@ -43,3 +43,8 @@ static TreeNode deserialize(const std::vector<char>& data, int maxChildren, int 
 
     return TreeNode(id, maxChildren, level, parentID, rectangle, childrenIDs);
 }
+
+// Get the size of the serialized object
+int TreeNode::getSerializedSize(int maxChildren, int dimensions) {
+    return (3 + maxChildren) * sizeof(int) + Region::getSerializedSize(dimensions);
+}

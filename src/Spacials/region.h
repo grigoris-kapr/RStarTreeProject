@@ -33,6 +33,7 @@ public:
 
     // Storage stuff:
     std::vector<char> serialize() const override;
+    static int getSerializedSize(int dimensions);
     static Region deserialize(const std::vector<char>& data, int dimensions);
     
 };
