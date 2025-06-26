@@ -9,7 +9,7 @@ std::vector<char> Storable::serializeInt(int value) {
     return data;
 }
 
-int Storable::deserializeInt(const std::vector<char>& data, size_t offset = 0) {
+int Storable::deserializeInt(const std::vector<char>& data, size_t offset) {
     if (data.size() < offset + sizeof(int)) {
         throw std::invalid_argument("Data size is too small for integer deserialization.");
     }
@@ -28,7 +28,7 @@ std::vector<char> Storable::serializeDouble(double value) {
     return data;
 }
 
-double Storable::deserializeDouble(const std::vector<char>& data, size_t offset = 0) {
+double Storable::deserializeDouble(const std::vector<char>& data, size_t offset) {
     if (data.size() < offset + sizeof(double)) {
         throw std::invalid_argument("Data size is too small for double deserialization.");
     }

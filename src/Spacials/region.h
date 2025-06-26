@@ -31,6 +31,9 @@ public:
     // and if a point is inside the region (overlaps Point)
     bool overlaps(const AbstractBoundedClass& other) const;
 
+    // Function to compute the bounding box of a collection of objects
+    static Region boundingBox(const std::vector<AbstractBoundedClass*>& objects);
+
     // Storage stuff:
     std::vector<char> serialize() const override;
     static int getSerializedSize(int dimensions);
@@ -38,19 +41,6 @@ public:
     
 };
 
-Region::Region(const std::vector<double>& startCoords, const std::vector<double>& endCoords) {
-    if (startCoords.size() != endCoords.size()) {
-        throw std::invalid_argument("Start and end coordinates must have the same dimension.");
-    }
-    for(size_t i = 0; i < startCoords.size(); ++i) {
-        if (startCoords[i] >= endCoords[i]) {
-            // Ensure that no point or invalid region is accidentally passed as a region
-            throw std::invalid_argument("Start coordinates must be less than end coordinates in each dimension.");
-        }
-        start.push_back(startCoords[i]);
-        end.push_back(endCoords[i]);
-    }
-}
-
+bool operator==(const Region& lhs, const Region& rhs);
 
 #endif // REGION_H

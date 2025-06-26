@@ -1,5 +1,18 @@
 #include "region.h"
 
+Region::Region(const std::vector<double>& startCoords, const std::vector<double>& endCoords) {
+    if (startCoords.size() != endCoords.size()) {
+        throw std::invalid_argument("Start and end coordinates must have the same dimension.");
+    }
+    for(size_t i = 0; i < startCoords.size(); ++i) {
+        if (startCoords[i] >= endCoords[i]) {
+            // Ensure that no point or invalid region is accidentally passed as a region
+            throw std::invalid_argument("Start coordinates must be less than end coordinates in each dimension.");
+        }
+        start.push_back(startCoords[i]);
+        end.push_back(endCoords[i]);
+    }
+}
 
 // Ger the region's area and margin
 double Region::area() const {
@@ -55,7 +68,7 @@ bool Region::overlaps(const AbstractBoundedClass& other) const  {
 // Function to compute the bounding box of a collection of objects
 // This function takes a vector of pointers to AbstractBoundedClass objects and 
 // returns a Region that represents the bounding box of all the objects.
-Region boundingBox(std::vector<AbstractBoundedClass*> objects) {
+Region Region::boundingBox(const std::vector<AbstractBoundedClass*>& objects) {
     if (objects.empty()) {
         throw std::invalid_argument("Object list cannot be empty.");
     }
@@ -75,6 +88,14 @@ Region boundingBox(std::vector<AbstractBoundedClass*> objects) {
 
     return Region(start, end);
 }
+
+bool operator==(const Region& lhs, const Region& rhs) {
+    return lhs.getStart() == rhs.getStart() && lhs.getEnd() == rhs.getEnd();
+}
+
+/* bool Region::operator==(const Region &rhs) {
+    return this->start == rhs.getStart() && this->end == rhs.getEnd();
+} */
 
 // Serialize the object to a string representation
 std::vector<char> Region::serialize() const {
