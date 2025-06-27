@@ -4,9 +4,7 @@
 
 // Serialize the point to a string representation
 std::vector<char> Point::serialize() const {
-    std::vector<char> bytes(coords.size() * sizeof(double));
-    std::memcpy(bytes.data(), coords.data(), bytes.size());
-    return bytes;
+    return Storable::serializeDoubles(coords);
 }
 
 // Deserialize the point from a string representation
@@ -15,7 +13,7 @@ Point Point::deserialize(const std::vector<char>& data, int dimensions) {
         throw std::invalid_argument("Data size is too small for Point deserialization.");
     }
     std::vector<double> coords(dimensions);
-    std::memcpy(coords.data(), data.data(), data.size());
+    coords = Storable::deserializeDoubles(data, 0, dimensions);
     return Point(coords);
 }
 

@@ -40,17 +40,9 @@ void DataPoint::setData(const std::vector<char>& newData) {
 std::vector<char> DataPoint::serialize() const {
     std::vector<char> data = Storable::serializeLongLong(id); // Start with the ID
 
-    printf("DBG1 size: %d\n", data.size());
-
     Storable::appendData(data, this->data); // Append the point data
 
-    printf("DBG2 size: %d\n", data.size());
-    for (int i = 0; i < data.size(); ++i) {
-        printf("DBG2 data[%2d]: %5d | %c\n", i, data[i], data[i]);
-    }
     Storable::appendData(data, point.serialize()); // Append the point data at the end
-
-    printf("DBG3\n");
 
     return data;
 }

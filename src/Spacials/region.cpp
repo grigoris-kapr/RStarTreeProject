@@ -113,9 +113,8 @@ std::vector<char> Region::serialize() const {
         throw std::invalid_argument("Mismatched start/end dimensions during serialization");
     }
 
-    std::vector<char> data(2 * dimensions * sizeof(double));
-    std::memcpy(data.data(), start.data(), dimensions * sizeof(double));
-    std::memcpy(data.data() + dimensions * sizeof(double), end.data(), dimensions * sizeof(double));
+    std::vector<char> data = Storable::serializeDoubles(start);
+    Storable::appendData(data, Storable::serializeDoubles(end));
     return data;
 }
 
@@ -125,11 +124,8 @@ Region Region::deserialize(const std::vector<char>& data, int dimensions) {
         throw std::invalid_argument("Invalid data size for Region deserialization");
     }
 
-    std::vector<double> start(dimensions);
-    std::vector<double> end(dimensions);
-
-    std::memcpy(start.data(), data.data(), dimensions * sizeof(double));
-    std::memcpy(end.data(), data.data() + dimensions * sizeof(double), dimensions * sizeof(double));
+    std::vector<double> start = Storable::deserializeDoubles(data, 0, dimensions);
+    std::vector<double> end = Storable::deserializeDoubles(data, dimensions * sizeof(double), dimensions);
 
     return Region(start, end);
 }

@@ -29,6 +29,14 @@ public:
     static long long deserializeLongLong(const std::vector<char>& data, size_t offset = 0);
     static std::vector<char> serializeDouble(double value);
     static double deserializeDouble(const std::vector<char>& data, size_t offset = 0);
+    // Vector (de)serialization methods for performance
+    static std::vector<char> serializeInts(const std::vector<int>& vec);
+    static std::vector<int> deserializeInts(const std::vector<char>& data, size_t offset = 0, size_t count = 0);
+    static std::vector<char> serializeLongLongs(const std::vector<long long>& vec);
+    static std::vector<long long> deserializeLongLongs(const std::vector<char>& data, size_t offset = 0, size_t count = 0);
+    static std::vector<char> serializeDoubles(const std::vector<double>& vec);
+    static std::vector<double> deserializeDoubles(const std::vector<char>& data, size_t offset = 0, size_t count = 0);
+    
     static void appendData(std::vector<char>& data, const std::vector<char>& additionalData);
 };
 
