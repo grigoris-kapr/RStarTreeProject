@@ -1,4 +1,5 @@
 #include "region.h"
+#include <cstring> // For memcpy
 
 Region::Region(const std::vector<double>& startCoords, const std::vector<double>& endCoords) {
     if (startCoords.size() != endCoords.size()) {
@@ -97,27 +98,39 @@ bool operator==(const Region& lhs, const Region& rhs) {
     return this->start == rhs.getStart() && this->end == rhs.getEnd();
 } */
 
+
+/*
+===============================================
+================= STORAGE =====================
+===============================================
+*/
+
+
 // Serialize the object to a string representation
 std::vector<char> Region::serialize() const {
-    std::vector<char> data;
-    for (int i = 0; i < start.size(); ++i) {
-        Storable::appendData(data, Storable::serializeDouble(start[i]));
-        Storable::appendData(data, Storable::serializeDouble(end[i]));
+    size_t dimensions = start.size();
+    if (end.size() != dimensions) {
+        throw std::invalid_argument("Mismatched start/end dimensions during serialization");
     }
+
+    std::vector<char> data(2 * dimensions * sizeof(double));
+    std::memcpy(data.data(), start.data(), dimensions * sizeof(double));
+    std::memcpy(data.data() + dimensions * sizeof(double), end.data(), dimensions * sizeof(double));
     return data;
 }
 
 // Deserialize the object from a string representation
 Region Region::deserialize(const std::vector<char>& data, int dimensions) {
-    if (data.size() < dimensions * 2 * sizeof(double)) {
-        throw std::invalid_argument("Data size is too small for Region deserialization.");
+    if (data.size() != 2 * dimensions * sizeof(double)) {
+        throw std::invalid_argument("Invalid data size for Region deserialization");
     }
+
     std::vector<double> start(dimensions);
     std::vector<double> end(dimensions);
-    for (int i = 0; i < dimensions; ++i) {
-        start[i] = Storable::deserializeDouble(data, i * 2 * sizeof(double));
-        end[i] = Storable::deserializeDouble(data, (i * 2 + 1) * sizeof(double));
-    }
+
+    std::memcpy(start.data(), data.data(), dimensions * sizeof(double));
+    std::memcpy(end.data(), data.data() + dimensions * sizeof(double), dimensions * sizeof(double));
+
     return Region(start, end);
 }
 

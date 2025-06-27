@@ -1,20 +1,21 @@
 #ifndef BUFFER_H
 #define BUFFER_H
 
+#include <string>
 
-class AbstractBuffer {
+class Buffer {
 private:
     int size; // Size of the buffer in number of elements
     void* data; // Pointer to the buffer data, can be any type
 
     // Prevent copying and assignment
-    AbstractBuffer(const AbstractBuffer&) = delete;
-    AbstractBuffer& operator=(const AbstractBuffer&) = delete;
+    Buffer(const Buffer&) = delete;
+    Buffer& operator=(const Buffer&) = delete;
 public:
-    AbstractBuffer(int size); // is size in memory or in number of elements?????
-    ~AbstractBuffer();
+    Buffer(int size); // is size in memory or in number of elements?????
+    ~Buffer();
 
-    
+    void parseOSMFile(const std::string& filename);
 };
 
 

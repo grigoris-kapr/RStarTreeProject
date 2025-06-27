@@ -1,24 +1,21 @@
 #include "point.h"
 
+#include <cstring>
+
 // Serialize the point to a string representation
 std::vector<char> Point::serialize() const {
-    std::vector<char> data;
-    // Serialize the coordinates
-    for (int i = 0; i < coords.size(); ++i) {
-        Storable::appendData(data, Storable::serializeDouble(coords[i]));
-    }
-    return data;
+    std::vector<char> bytes(coords.size() * sizeof(double));
+    std::memcpy(bytes.data(), coords.data(), bytes.size());
+    return bytes;
 }
 
 // Deserialize the point from a string representation
-static Point deserialize(const std::vector<char>& data, int dimensions) {
+Point Point::deserialize(const std::vector<char>& data, int dimensions) {
     if (data.size() < dimensions * sizeof(double)) {
         throw std::invalid_argument("Data size is too small for Point deserialization.");
     }
     std::vector<double> coords(dimensions);
-    for (int i = 0; i < dimensions; ++i) {
-        coords[i] = Storable::deserializeDouble(data, i * sizeof(double));
-    }
+    std::memcpy(coords.data(), data.data(), data.size());
     return Point(coords);
 }
 

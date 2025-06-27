@@ -1,6 +1,8 @@
 #include "storable.h"
 #include <stdexcept>
 
+// ==================== INT ====================
+
 std::vector<char> Storable::serializeInt(int value) {
     std::vector<char> data(sizeof(int));
     for (size_t i = 0; i < sizeof(int); ++i) {
@@ -19,6 +21,29 @@ int Storable::deserializeInt(const std::vector<char>& data, size_t offset) {
     }
     return value;
 }
+
+// ==================== LONG LONG ====================
+
+std::vector<char> Storable::serializeLongLong(long long value) {
+    std::vector<char> data(sizeof(long long));
+    for (size_t i = 0; i < sizeof(long long); ++i) {
+        data[i] = static_cast<char>((value >> (i * 8)) & 0xFF);
+    }
+    return data;
+}
+
+long long Storable::deserializeLongLong(const std::vector<char>& data, size_t offset) {
+    if (data.size() < offset + sizeof(long long)) {
+        throw std::invalid_argument("Data size is too small for long long deserialization.");
+    }
+    long long value = 0;
+    for (size_t i = 0; i < sizeof(long long); ++i) {
+        value |= (static_cast<unsigned char>(data[offset + i]) << (i * 8));
+    }
+    return value;
+}
+
+// ==================== DOUBLE ====================
 
 std::vector<char> Storable::serializeDouble(double value) {
     std::vector<char> data(sizeof(double));
@@ -39,7 +64,10 @@ double Storable::deserializeDouble(const std::vector<char>& data, size_t offset)
     return value;
 }
 
+// ==================== APPEND ====================
+
 void Storable::appendData(std::vector<char>& data, const std::vector<char>& additionalData) {
+    printf("DBG: og data: %s\n", data.data());
     if (data.empty()) {
         throw std::invalid_argument("Data cannot be empty.");
     }

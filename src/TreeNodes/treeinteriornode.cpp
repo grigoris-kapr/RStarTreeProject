@@ -1,6 +1,6 @@
 #include "treeinteriornode.h"
 
-TreeInteriorNode ::TreeInteriorNode (int id, int maxChildren, int level, int parentID, const Region& boundingBox, int* childrenIDs, Region* childrenBoundingBoxes):
+TreeInteriorNode::TreeInteriorNode (int id, int maxChildren, int level, int parentID, const Region& boundingBox, int* childrenIDs, Region* childrenBoundingBoxes):
     TreeNode(id, level, parentID, boundingBox) // Call the base class constructor
 {
     if(childrenIDs == nullptr) {
@@ -28,7 +28,7 @@ TreeInteriorNode ::TreeInteriorNode (int id, int maxChildren, int level, int par
     }
 }
 
-TreeInteriorNode ::~TreeInteriorNode () {
+TreeInteriorNode::~TreeInteriorNode () {
     delete[] childrenIDs; // Free the memory allocated for child IDs
     delete[] childrenBoundingBoxes; // Free the memory allocated for bounding boxes
 }

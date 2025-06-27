@@ -25,6 +25,8 @@ public:
 
     static std::vector<char> serializeInt(int value);
     static int deserializeInt(const std::vector<char>& data, size_t offset = 0);
+    static std::vector<char> serializeLongLong(long long value);
+    static long long deserializeLongLong(const std::vector<char>& data, size_t offset = 0);
     static std::vector<char> serializeDouble(double value);
     static double deserializeDouble(const std::vector<char>& data, size_t offset = 0);
     static void appendData(std::vector<char>& data, const std::vector<char>& additionalData);

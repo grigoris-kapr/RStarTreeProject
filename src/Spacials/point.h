@@ -9,8 +9,8 @@
 class Point: public AbstractBoundedClass, public Storable {
     // This class represents a point in a multi-dimensional space.
     // It is derived from AbstractBoundedClass to ensure interoperability.
-private:
-    std::vector<double> coords; // Starting coordinates of the region
+protected:
+    std::vector<double> coords;
 public:
     Point() = default;
     Point(const std::vector<double>& coords) : coords(coords) {

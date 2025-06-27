@@ -36,6 +36,8 @@ target_include_directories(rstartree PUBLIC
 # Add test executable
 add_executable(test_tree_interior_node src/tests/TestTreeInteriorNode.cpp)
 target_link_libraries(test_tree_interior_node gtest_main rstartree)
+add_executable(test_datapoint src/tests/TestDataPoint.cpp)
+target_link_libraries(test_datapoint gtest_main rstartree)
 
 # Register with CTest
 add_test(NAME TreeInteriorNodeTest COMMAND test_tree_interior_node)
