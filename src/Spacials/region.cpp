@@ -120,8 +120,9 @@ std::vector<char> Region::serialize() const {
 
 // Deserialize the object from a string representation
 Region Region::deserialize(const std::vector<char>& data, int dimensions) {
-    if (data.size() != 2 * dimensions * sizeof(double)) {
-        throw std::invalid_argument("Invalid data size for Region deserialization");
+    if (data.size() < 2 * dimensions * sizeof(double)) {
+        throw std::invalid_argument("Invalid data size for Region deserialization. \
+            Expected " + std::to_string(2 * dimensions * sizeof(double)) + " bytes, got " + std::to_string(data.size()) + ".");
     }
 
     std::vector<double> start = Storable::deserializeDoubles(data, 0, dimensions);

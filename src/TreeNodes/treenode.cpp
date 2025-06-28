@@ -1,8 +1,9 @@
 #include "treenode.h"
 #include <vector>
 
-TreeNode ::TreeNode (int id, int level, int parentID, const Region& boundingBox) {
+TreeNode ::TreeNode (int id, int maxChildren, int level, int parentID, const Region& boundingBox) {
     this->id = id;
+    this->maxChildren = maxChildren;
     this->level = level;
     this->parentID = parentID;
     this->numChildren = 0; // Init here to be used in interior and leaf nodes
@@ -14,6 +15,8 @@ TreeNode ::~TreeNode () {
 }
 
 // Serialize the object to a string representation
+// Doesn't store numChildren, as it can be derived from the data
+// and maxChildren as it's stored in data block 0
 std::vector<char> TreeNode::serialize() const {
     std::vector<char> data;
     // Serialize the basic properties of the TreeNode
@@ -27,7 +30,8 @@ std::vector<char> TreeNode::serialize() const {
 }
 
 // Deserialize the object from a string representation
-TreeNode TreeNode::deserialize(const std::vector<char>& data, int dimensions) {
+// maxChildren is not stored but needed for the constructor
+TreeNode TreeNode::deserialize(const std::vector<char>& data, int maxChildren, int dimensions) {
     if (data.size() < TreeNode::getSerializedSize(dimensions)) {
         throw std::invalid_argument("Data size is too small for TreeNode deserialization.");
     }
@@ -40,7 +44,7 @@ TreeNode TreeNode::deserialize(const std::vector<char>& data, int dimensions) {
     std::vector<char> regionData(data.begin() + 3 * sizeof(int), data.end());
     Region boundingBox = Region::deserialize(regionData, dimensions);
 
-    return TreeNode(id, level, parentID, boundingBox);
+    return TreeNode(id, maxChildren, level, parentID, boundingBox);
 }
 
 // Get the size of the serialized object
