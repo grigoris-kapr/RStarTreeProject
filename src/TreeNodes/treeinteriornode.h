@@ -3,7 +3,7 @@
 
 #include "treenode.h"
 
-class TreeInteriorNode:   public TreeNode{
+class TreeInteriorNode: public TreeNode {
 private:
     std::vector<int> childrenIDs; // Array of child node IDs, size determined by maxChildren upon creation
     Region* childrenBoundingBoxes; // Array of bounding boxes for each child node, size determined by maxChildren upon creation
@@ -24,6 +24,7 @@ public:
     void addChild(int childID, const Region& childBoundingBox);
     void addChildren(const std::vector<int>& childrenIDs, const std::vector<Region>& childrenBoundingBoxes);
     int removeChild(int childID);
+    std::vector<int> rangeQuery(const AbstractBoundedClass& query) const;
     
 };
 

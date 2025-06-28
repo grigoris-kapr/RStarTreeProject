@@ -178,3 +178,51 @@ TEST(TreeInteriorNodeTest, SerializeAndDeserialize) {
     EXPECT_EQ(originalNode.getBoundingBox(), deserializedNode.getBoundingBox());
     EXPECT_EQ(originalNode.getChildrenIDs(), deserializedNode.getChildrenIDs());
 }
+
+TEST(TreeInteriorNodeTest, RangeQuery) {
+    int maxChildren = 3;
+    int id = 1;
+    int level = 1;
+    int parentID = -1;
+    Region rectangle(std::vector<double>{0.0, 0.0}, std::vector<double>{1.0, 1.0});
+    
+    std::vector<int> childrenIDs = {2, 3, -1}; // -1 indicates no child
+    Region childrenBoundingBoxes[] = {
+        Region(std::vector<double> {0.0, 0.0}, std::vector<double> {0.5, 0.5}),
+        Region(std::vector<double> {0.5, 0.5}, std::vector<double> {1.0, 1.0}),
+        Region() // Last one is empty
+    }; 
+
+    TreeInteriorNode node(id, maxChildren, level, parentID, rectangle, childrenIDs, childrenBoundingBoxes);
+
+    // Query that overlaps with both children
+    Region queryRegion(std::vector<double>{0.25, 0.25}, std::vector<double>{0.75, 0.75});
+    std::vector<int> result = node.rangeQuery(queryRegion);
+    EXPECT_EQ(result.size(), 2);
+    // order is irrelevant
+    EXPECT_TRUE(result[0] == 2 || result[1] == 2);
+    EXPECT_TRUE(result[0] == 3 || result[1] == 3);
+
+    // Query that only overlaps with the first child
+    queryRegion = Region(std::vector<double>{-0.25, -0.25}, std::vector<double>{0.25, 0.25});
+    result = node.rangeQuery(queryRegion);
+    
+    EXPECT_EQ(result.size(), 1);
+    EXPECT_EQ(result[0], 2);
+
+    // Query that does not overlap with any children
+    queryRegion = Region(std::vector<double>{2.0, 2.0}, std::vector<double>{3.0, 3.0});
+    result = node.rangeQuery(queryRegion);
+
+    EXPECT_TRUE(result.empty());
+
+    // Test query on full node
+    node.addChild(4, Region(std::vector<double>{0.1, 0.1}, std::vector<double>{0.2, 0.2}));
+    queryRegion = Region(std::vector<double>{0.0, 0.0}, std::vector<double>{1.0, 1.0});
+    result = node.rangeQuery(queryRegion);
+
+    EXPECT_EQ(result.size(), 3);
+    EXPECT_TRUE(result[0] == 2 || result[1] == 2 || result[2] == 2);
+    EXPECT_TRUE(result[0] == 3 || result[1] == 3 || result[2] == 3);
+    EXPECT_TRUE(result[0] == 4 || result[1] == 4 || result[2] == 4);
+}

@@ -24,13 +24,16 @@ public:
     // Get the start and end coordinates of the point (both are the same)
     const std::vector<double>& getStart() const override { return coords; }
     const std::vector<double>& getEnd() const override { return coords; }
+    // For printing the point, NOT for serialization
+    std::string toString() const;
 
-    // Serialize the point to a string representation
+    // Storage stuff:
     std::vector<char> serialize() const override;
-    // Deserialize the point from a string representation
     static Point deserialize(const std::vector<char>& data, int dimensions);
-    // Get the size of the serialized point
     static int getSerializedSize(int dimensions);
 };
+
+bool operator==(const Point& lhs, const Point& rhs);
+bool operator!=(const Point& lhs, const Point& rhs);
 
 #endif // POINT_H

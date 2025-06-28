@@ -96,6 +96,27 @@ int TreeInteriorNode::removeChild(int childID) {
     return -1;
 }
 
+// Return all IDs that overlap the query
+// Supports both point and region queries
+std::vector<int> TreeInteriorNode::rangeQuery(const AbstractBoundedClass& query) const {
+    std::vector<int> results;
+
+    // Check if the query overlaps with this node's bounding box
+    // TODO: performance check this
+    if (!boundingBox.overlaps(query)) {
+        return results; // No overlap, return empty result
+    }
+
+    // Iterate through children and add id if overlap
+    for (int i = 0; i < numChildren; ++i) {
+        if (childrenBoundingBoxes[i].overlaps(query)) {
+            results.push_back(childrenIDs[i]); 
+        }
+    }
+
+    return results;
+}
+
 /*
 ===================================================
 ================== Storage stuff ==================
@@ -113,7 +134,6 @@ std::vector<char> TreeInteriorNode::serialize() const {
 
     // Serialize childrenIDs
     Storable::appendData(data, Storable::serializeInts(childrenIDs));
-    printf("DBG\n");
 
     // Serialize childrenBoundingBoxes
     for (int i = 0; i < numChildren; ++i) {
@@ -139,7 +159,6 @@ TreeInteriorNode TreeInteriorNode::deserialize(const std::vector<char>& data, in
     for(int i = 0; i < maxChildren; ++i) {
         if(childrenIDs[i] >=0) { // count non-empty children
             numChildren++;
-            printf("DBG: child %d has ID %d\n", i, childrenIDs[i]);
         }
     }
 

@@ -1,6 +1,28 @@
 #include "point.h"
 
 #include <cstring>
+#include <format>
+
+
+std::string Point::toString() const {
+    std::string result = "Point(";
+    if(!coords.empty()) {
+        for (size_t i = 0; i < coords.size()-1; ++i) {
+            result += std::format("{:.6f}, ", coords[i]);
+        }
+        result += std::format("{:.6f}", coords[coords.size()-1]);
+    }
+    result += ")";
+
+    return result;
+}
+
+bool operator==(const Point& lhs, const Point& rhs) {
+    return lhs.getCoordinates() == rhs.getCoordinates();
+}
+bool operator!=(const Point& lhs, const Point& rhs) {
+    return !(lhs == rhs);
+}
 
 // Serialize the point to a string representation
 std::vector<char> Point::serialize() const {

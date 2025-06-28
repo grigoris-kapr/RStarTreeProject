@@ -7,6 +7,7 @@
 #include "storable.h"
 
 // Class implementing the common parts of interior and leaf nodes in the tree.
+// Extends Storable
 class TreeNode: public Storable{
 protected:
     int id; // Unique identifier for the node
@@ -22,8 +23,8 @@ public:
     TreeNode (int id, int maxChildren, int level, int parentID, const Region& boundingBox);
     ~TreeNode ();
 
-    bool isLeaf() const { return false; } // Left as-is for interior nodes; leaf nodes will override this method
-
+    bool isLeaf() const { return level == 0; } 
+    
     int getID() const { return id; }
     int getLevel() const { return level; }
     int getParentID() const { return parentID; }
