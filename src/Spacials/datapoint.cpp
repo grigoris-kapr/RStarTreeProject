@@ -37,18 +37,18 @@ void DataPoint::setData(const std::vector<char>& newData) {
 =========================================
 */
 
-std::vector<char> DataPoint::serialize() const {
+std::vector<char> DataPoint::serialize(GlobalParameters* config) const {
     std::vector<char> data = Storable::serializeLongLong(id); // Start with the ID
 
     Storable::appendData(data, this->data); // Append the point data
 
-    Storable::appendData(data, point.serialize()); // Append the point data at the end
+    Storable::appendData(data, point.serialize(config)); // Append the point data at the end
 
     return data;
 }
 
-DataPoint DataPoint::deserialize(const std::vector<char>& data, int dimensions) {
-    if (data.size() < getSerializedSize(dimensions)) {
+DataPoint DataPoint::deserialize(GlobalParameters* config, const std::vector<char>& data) {
+    if (data.size() < getSerializedSize(config)) {
         throw std::invalid_argument("Data size is too small for DataPoint deserialization.");
     }
 
@@ -56,12 +56,12 @@ DataPoint DataPoint::deserialize(const std::vector<char>& data, int dimensions) 
     std::vector<char> dataPointData(data.begin() + sizeof(long long), data.begin() + sizeof(long long) + MAX_DATA_SIZE);
     
     std::vector<char> pointSerializedData(data.begin() + sizeof(long long) + MAX_DATA_SIZE, data.end());
-    Point point = Point::deserialize(pointSerializedData, dimensions); // Deserialize the point
+    Point point = Point::deserialize(config, pointSerializedData); // Deserialize the point
 
     return DataPoint(point, dataPointData, id);
 
 }
 
-int DataPoint::getSerializedSize(int dimensions) {
-    return sizeof(long long) + MAX_DATA_SIZE + Point::getSerializedSize(dimensions);
+int DataPoint::getSerializedSize(GlobalParameters* config) {
+    return sizeof(long long) + MAX_DATA_SIZE + Point::getSerializedSize(config);
 }

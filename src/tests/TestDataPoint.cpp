@@ -63,11 +63,19 @@ TEST(DataPointTest, MaxDataSize) {
 TEST(DataPointTest, GetSerializedSize) {
     // Code should be quick so test all options from 0 (which makes no sense) to some high number
     for (int dimensions = 0; dimensions <= 100; ++dimensions) {
-        EXPECT_EQ(DataPoint::getSerializedSize(dimensions), sizeof(long long) + MAX_DATA_SIZE + Point::getSerializedSize(dimensions));
+        GlobalParameters* config = new GlobalParameters;
+        config->dimensions = dimensions;
+        config->maxChildren = 12; // Irrelevant for this
+        EXPECT_EQ(DataPoint::getSerializedSize(config), sizeof(long long) + MAX_DATA_SIZE + Point::getSerializedSize(config));
+        delete config;
     }
 }
 
 TEST(DataPointTest, SerializeAndDeserialize) {
+    GlobalParameters* config = new GlobalParameters;
+    config->dimensions = 3;
+    config->maxChildren = 12; // Irrelevant for this
+
     std::vector<double> coords = {13.0, 14.0, 15.0};
     std::vector<char> data(3, 'x');
     long long id = 123456789;
@@ -75,15 +83,17 @@ TEST(DataPointTest, SerializeAndDeserialize) {
     printf("DBG\n");
 
     DataPoint original(coords, data, id);
-    std::vector<char> serializedData = original.serialize();
+    std::vector<char> serializedData = original.serialize(config);
     // VERY IMPORTANT!!!
-    EXPECT_EQ(serializedData.size(), DataPoint::getSerializedSize(coords.size()));
+    EXPECT_EQ(serializedData.size(), DataPoint::getSerializedSize(config));
 
     printf("DBG\n");
     
-    DataPoint deserialized = DataPoint::deserialize(serializedData, coords.size());
+    DataPoint deserialized = DataPoint::deserialize(config, serializedData);
     
     EXPECT_EQ(deserialized.getPoint().getCoordinates(), coords);
     testData(deserialized, data);
     EXPECT_EQ(deserialized.getID(), id);
+
+    delete config;
 }

@@ -30,13 +30,13 @@ public:
     long long getID() const { return id; }
 
     // Serialize the DataPoint to a string representation
-    std::vector<char> serialize() const override;
+    std::vector<char> serialize(GlobalParameters* config) const override;
 
     // Deserialize the DataPoint from a string representation
-    static DataPoint deserialize(const std::vector<char>& data, int dimensions);
+    static DataPoint deserialize(GlobalParameters* config, const std::vector<char>& data);
 
     // Get the size of the serialized DataPoint
-    static int getSerializedSize(int dimensions);
+    static int getSerializedSize(GlobalParameters* config);
 };
 
 #endif // DATA_POINT_H

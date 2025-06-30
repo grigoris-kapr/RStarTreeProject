@@ -1,28 +1,27 @@
 #include "treeinteriornode.h"
 
-TreeInteriorNode::TreeInteriorNode (int id, int maxChildren, int level, int parentID, const Region& boundingBox, std::vector<int> childrenIDs, Region* childrenBoundingBoxes):
-    TreeNode(id, maxChildren, level, parentID, boundingBox) // Call the base class constructor
+TreeInteriorNode::TreeInteriorNode (GlobalParameters* config, int id, int level, int parentID, const Region& boundingBox, std::vector<int> childrenIDs, Region* childrenBoundingBoxes):
+    TreeNode(id, level, parentID, boundingBox) // Call the base class constructor
 {
-    if(childrenIDs.size() != maxChildren) {
+    if(childrenIDs.size() != config->maxChildren) {
         throw std::invalid_argument("childrenIDs size must match maxChildren.");
     }
     if(childrenBoundingBoxes == nullptr) {
         throw std::invalid_argument("childrenBoundingBoxes cannot be null when initializing TreeInteriorNode.");
     }
 
-    this->maxChildren = maxChildren;
     this->childrenIDs = childrenIDs;
     this->numChildren = 0;
 
-    for(int i = 0; i < maxChildren; ++i) {
+    for(int i = 0; i < config->maxChildren; ++i) {
         if(childrenIDs[i] >=0) { // count non-empty children
             this->numChildren++;
         }
     }
 
-    this->childrenBoundingBoxes = new Region[maxChildren]; // Allocate memory for bounding boxes
+    this->childrenBoundingBoxes = new Region[config->maxChildren]; // Allocate memory for bounding boxes
 
-    for (int i = 0; i < maxChildren; ++i) {
+    for (int i = 0; i < config->maxChildren; ++i) {
         this->childrenBoundingBoxes[i] = childrenBoundingBoxes[i];
     }
 }
@@ -45,8 +44,8 @@ void TreeInteriorNode::updateBoundingBox(){
     boundingBox = Region::boundingBox(boundingBoxes); // Compute the bounding box of all children
 }
 
-void TreeInteriorNode::addChild(int childID, const Region& childBoundingBox) {
-    if (numChildren >= maxChildren) {
+void TreeInteriorNode::addChild(GlobalParameters* config, int childID, const Region& childBoundingBox) {
+    if (numChildren >= config->maxChildren) {
         throw std::overflow_error("Node " + std::to_string(id) + " has reached its maximum number of children.");
     }
 
@@ -59,8 +58,8 @@ void TreeInteriorNode::addChild(int childID, const Region& childBoundingBox) {
     updateBoundingBox();
 }
 
-void TreeInteriorNode::addChildren(const std::vector<int>& childrenIDs, const std::vector<Region>& childrenBoundingBoxes) {
-    if (numChildren + childrenIDs.size() > maxChildren) {
+void TreeInteriorNode::addChildren(GlobalParameters* config, const std::vector<int>& childrenIDs, const std::vector<Region>& childrenBoundingBoxes) {
+    if (numChildren + childrenIDs.size() > config->maxChildren) {
         throw std::overflow_error("Node " + std::to_string(id) + " cannot accommodate all new children.");
     }
     if (childrenIDs.size() != childrenBoundingBoxes.size()) {
@@ -126,8 +125,8 @@ std::vector<int> TreeInteriorNode::rangeQuery(const AbstractBoundedClass& query)
 // Serialize the node to a string representation
 // Doesn't store numChildren, as it can be derived from the data
 // and maxChildren as it's stored in data block 0
-std::vector<char> TreeInteriorNode::serialize() const {
-    std::vector<char> data = TreeNode::serialize(); // Serialize the base class first
+std::vector<char> TreeInteriorNode::serialize(GlobalParameters* config) const {
+    std::vector<char> data = TreeNode::serialize(config); // Serialize the base class first
     // preallocate space for the serialized data
     // #TODO: check if this is gives a performance boost
     // data.reserve(data.size() + getSerializedSize(maxChildren, boundingBox.getStart().size())); 
@@ -137,50 +136,53 @@ std::vector<char> TreeInteriorNode::serialize() const {
 
     // Serialize childrenBoundingBoxes
     for (int i = 0; i < numChildren; ++i) {
-        Storable::appendData(data, childrenBoundingBoxes[i].serialize());
+        Storable::appendData(data, childrenBoundingBoxes[i].serialize(config));
     }
 
     // Pad out for empty children
-    Storable::appendData(data, std::vector<char>((maxChildren - numChildren) * Region::getSerializedSize(boundingBox.getStart().size()), 0));
+    Storable::appendData(data, std::vector<char>((config->maxChildren - numChildren) * Region::getSerializedSize(config), 0));
 
     return data;
 }
 
-TreeInteriorNode TreeInteriorNode::deserialize(const std::vector<char>& data, int maxChildren, int dimensions) {
+TreeInteriorNode TreeInteriorNode::deserialize(GlobalParameters* config, const std::vector<char>& data) {
+    if (data.size() < TreeInteriorNode::getSerializedSize(config)) {
+        throw std::invalid_argument("Data size is too small for TreeInteriorNode deserialization.");
+    }
     // Deserialize the base class first
-    TreeNode baseNode = TreeNode::deserialize(data, maxChildren, dimensions);
-    size_t offset = TreeNode::getSerializedSize(dimensions);
+    TreeNode baseNode = TreeNode::deserialize(config, data);
+    size_t offset = TreeNode::getSerializedSize(config);
 
     // Deserialize childrenIDs
-    std::vector<int> childrenIDs = Storable::deserializeInts(data, offset, maxChildren);
-    offset += maxChildren * sizeof(int); // Move the offset past the childrenIDs
+    std::vector<int> childrenIDs = Storable::deserializeInts(data, offset, config->maxChildren);
+    offset += config->maxChildren * sizeof(int); // Move the offset past the childrenIDs
     // Count the children
     int numChildren = 0;
-    for(int i = 0; i < maxChildren; ++i) {
+    for(int i = 0; i < config->maxChildren; ++i) {
         if(childrenIDs[i] >=0) { // count non-empty children
             numChildren++;
         }
     }
 
     // Deserialize childrenBoundingBoxes
-    Region* childrenBoundingBoxes = new Region[maxChildren];
+    Region* childrenBoundingBoxes = new Region[config->maxChildren];
     for (int i = 0; i < numChildren; ++i) {
         std::vector<char>::const_iterator regionDataStart = data.begin() + offset;
-        std::vector<char>::const_iterator regionDataEnd = regionDataStart + Region::getSerializedSize(dimensions);
+        std::vector<char>::const_iterator regionDataEnd = regionDataStart + Region::getSerializedSize(config);
         std::vector<char> regionData(regionDataStart, regionDataEnd);
 
-        childrenBoundingBoxes[i] = Region::deserialize(regionData, dimensions);
-        offset += Region::getSerializedSize(dimensions);
+        childrenBoundingBoxes[i] = Region::deserialize(config, regionData);
+        offset += Region::getSerializedSize(config);
     }
     // Don't bother with the rest, set to empty regions
-    for (int i = numChildren; i < maxChildren; ++i) {
+    for (int i = numChildren; i < config->maxChildren; ++i) {
         childrenBoundingBoxes[i] = Region(); // Default constructor creates an empty region
     }
 
-    return TreeInteriorNode(baseNode.getID(), maxChildren, baseNode.getLevel(), baseNode.getParentID(), baseNode.getBoundingBox(), childrenIDs, childrenBoundingBoxes);
+    return TreeInteriorNode(config, baseNode.getID(), baseNode.getLevel(), baseNode.getParentID(), baseNode.getBoundingBox(), childrenIDs, childrenBoundingBoxes);
 }
 
-int TreeInteriorNode::getSerializedSize(int maxChildren, int dimensions) {
-    return TreeNode::getSerializedSize(dimensions) + // Size of the base class
-           maxChildren * (sizeof(int) + Region::getSerializedSize(dimensions)); // Size of childrenIDs and childrenBoundingBoxes
+int TreeInteriorNode::getSerializedSize(GlobalParameters* config) {
+    return TreeNode::getSerializedSize(config) + // Size of the base class
+           config->maxChildren * (sizeof(int) + Region::getSerializedSize(config)); // Size of childrenIDs and childrenBoundingBoxes
 }

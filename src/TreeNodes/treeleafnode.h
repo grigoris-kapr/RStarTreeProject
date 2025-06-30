@@ -12,15 +12,15 @@ private:
     std::vector<int> blockIDs; // -1 for empty slots
     std::vector<int> recordIDs; // -1 for empty slots
     std::vector<Point> points; // Point() for empty slots
-    std::string printPointInfo(int i) const;
+    std::string printPointInfo(GlobalParameters* config, int i) const;
     int findPointIndex(const Point& point) const; // Returns the index of the point if found, otherwise -1
 public:
-    TreeLeafNode(int id, int maxChildren, int level, int parentID, const Region& boundingBox, const std::vector<Point>& points, const std::vector<int>& blockIDs, const std::vector<int>& recordIDs);
+    TreeLeafNode(GlobalParameters* config, int id, int level, int parentID, const Region& boundingBox, const std::vector<Point>& points, const std::vector<int>& blockIDs, const std::vector<int>& recordIDs);
     ~TreeLeafNode() = default;
 
     // Interface methods
-    void addPoint(const Point& point, int blockID, int recordID);
-    void addPoints(const std::vector<Point>& points, const std::vector<int>& blockIDs, const std::vector<int>& recordIDs); // For tree initialization
+    void addPoint(GlobalParameters* config, const Point& point, int blockID, int recordID);
+    void addPoints(GlobalParameters* config, const std::vector<Point>& points, const std::vector<int>& blockIDs, const std::vector<int>& recordIDs); // For tree initialization
     std::pair<int, int> findPoint(const Point& point) const; // <blockID, recordID> or (-1, -1) if not found
     std::vector<std::pair<int, int>> rangeQuery(const AbstractBoundedClass& query) const; // <blockID, recordID> 
     int removePoint(int blockID, int recordID);
@@ -32,9 +32,9 @@ public:
     const std::vector<int>& getRecordIDs() const { return recordIDs; }
 
     // Serialization
-    std::vector<char> serialize() const override;
-    static TreeLeafNode deserialize(const std::vector<char>& data, int maxChildren, int dimensions);
-    static int getSerializedSize(int maxChildren, int dimensions);
+    std::vector<char> serialize(GlobalParameters* config) const override;
+    static TreeLeafNode deserialize(GlobalParameters* config, const std::vector<char>& data);
+    static int getSerializedSize(GlobalParameters* config);
 };
 
 #endif // TREELEAFNODE_H

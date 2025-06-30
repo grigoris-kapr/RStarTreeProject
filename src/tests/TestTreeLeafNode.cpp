@@ -3,8 +3,8 @@
 
 
 // For every test other than the constructor, make a standrad test node
-TreeLeafNode* createTestNode(int maxChildren = 4) {
-    if (maxChildren < 3) {
+TreeLeafNode* createTestNode(GlobalParameters* config) {
+    if (config->maxChildren < 3) {
         throw std::invalid_argument("maxChildren must be at least 3.");
     }
     int id = 1;
@@ -16,11 +16,14 @@ TreeLeafNode* createTestNode(int maxChildren = 4) {
     std::vector<int> blockIDs = {10, 20, 10};
     std::vector<int> recordIDs = {100, 200, 101};
 
-    return new TreeLeafNode(id, maxChildren, level, parentID, boundingBox, points, blockIDs, recordIDs);
+    return new TreeLeafNode(config, id, level, parentID, boundingBox, points, blockIDs, recordIDs);
 }
 
 TEST(TreeLeafNodeTest, ConstructorAndGetters) {
-    int maxChildren = 4;
+    GlobalParameters* config = new GlobalParameters;
+    config->dimensions = 2;
+    config->maxChildren = 4;
+
     int id = 1;
     int level = 0;
     int parentID = -1;
@@ -30,7 +33,7 @@ TEST(TreeLeafNodeTest, ConstructorAndGetters) {
     std::vector<int> blockIDs = {10, 20, 10};
     std::vector<int> recordIDs = {100, 200, 101};
 
-    TreeLeafNode node(id, maxChildren, level, parentID, boundingBox, points, blockIDs, recordIDs);
+    TreeLeafNode node(config, id, level, parentID, boundingBox, points, blockIDs, recordIDs);
     TreeNode* nodePtr = &node;
 
     EXPECT_EQ(node.getID(), id);
@@ -40,14 +43,19 @@ TEST(TreeLeafNodeTest, ConstructorAndGetters) {
     EXPECT_EQ(node.getParentID(), parentID);
     EXPECT_EQ(node.getBoundingBox(), boundingBox);
     EXPECT_EQ(node.getNumChildren(), 3);
-    EXPECT_EQ(node.getPoints().size(), maxChildren); // Should have maxChildren size
+    EXPECT_EQ(node.getPoints().size(), config->maxChildren); // Should have maxChildren size
+
+    delete config;
 }
 
 TEST(TreeLeafNodeTest, AddPoint) {
-    TreeLeafNode node = *createTestNode();
+    GlobalParameters* config = new GlobalParameters;
+    config->dimensions = 2;
+    config->maxChildren = 4;
+    TreeLeafNode node = *createTestNode(config);
 
     Point newPoint({0.3, 0.3});
-    node.addPoint(newPoint, 30, 300);
+    node.addPoint(config, newPoint, 30, 300);
 
     // added fourth child 
     EXPECT_EQ(node.getNumChildren(), 4);
@@ -55,30 +63,38 @@ TEST(TreeLeafNodeTest, AddPoint) {
     EXPECT_EQ(node.getBlockIDs()[3], 30);
     EXPECT_EQ(node.getRecordIDs()[3], 300);
 
-    EXPECT_THROW(node.addPoint(Point({0.4, 0.4}), 40, 400), std::overflow_error);
+    EXPECT_THROW(node.addPoint(config, Point({0.4, 0.4}), 40, 400), std::overflow_error);
 
     // Reset
-    node = *createTestNode();
+    node = *createTestNode(config);
     // Point of the same location not allowed
-    EXPECT_THROW(node.addPoint(Point({0.1, 0.1}), 123, 500), std::invalid_argument); 
+    EXPECT_THROW(node.addPoint(config, Point({0.1, 0.1}), 123, 500), std::invalid_argument); 
     // Negative Block ID and Record ID not allowed
-    EXPECT_THROW(node.addPoint(Point({0.5, 0.5}), -1, 600), std::invalid_argument);
-    EXPECT_THROW(node.addPoint(Point({0.6, 0.6}), 50, -1), std::invalid_argument);
+    EXPECT_THROW(node.addPoint(config, Point({0.5, 0.5}), -1, 600), std::invalid_argument);
+    EXPECT_THROW(node.addPoint(config, Point({0.6, 0.6}), 50, -1), std::invalid_argument);
+
+    delete config;
 }
 
 TEST(TreeLeafNodeTest, AddPoints) {
-    TreeLeafNode node = *createTestNode();
+    GlobalParameters* config = new GlobalParameters;
+    config->dimensions = 2;
+    config->maxChildren = 4;
+    TreeLeafNode node = *createTestNode(config);
 
     std::vector<Point> newPoints = {Point({0.3, 0.3}), Point({0.4, 0.4})};
     std::vector<int> newBlockIDs = {30, 40};
     std::vector<int> newRecordIDs = {300, 400};
 
     // Node contains 3, max is 4
-    EXPECT_THROW(node.addPoints(newPoints, newBlockIDs, newRecordIDs), std::overflow_error);
+    EXPECT_THROW(node.addPoints(config, newPoints, newBlockIDs, newRecordIDs), std::overflow_error);
 
-    node = *createTestNode(5); // Create a new node with maxChildren = 5
+    GlobalParameters* config2 = new GlobalParameters;
+    config->dimensions = 2;
+    config->maxChildren = 5;
+    node = *createTestNode(config2); // Create a new node with maxChildren = 5
 
-    node.addPoints(newPoints, newBlockIDs, newRecordIDs);
+    node.addPoints(config2, newPoints, newBlockIDs, newRecordIDs);
 
     EXPECT_EQ(node.getNumChildren(), 5);
     EXPECT_EQ(node.getPoints()[3].getCoordinates(), newPoints[0].getCoordinates());
@@ -87,10 +103,16 @@ TEST(TreeLeafNodeTest, AddPoints) {
     EXPECT_EQ(node.getPoints()[4].getCoordinates(), newPoints[1].getCoordinates());
     EXPECT_EQ(node.getBlockIDs()[4], newBlockIDs[1]);
     EXPECT_EQ(node.getRecordIDs()[4], newRecordIDs[1]);
+
+    delete config;
+    delete config2;
 }
 
 TEST(TreeLeafNodeTest, FindPoint) {
-    TreeLeafNode node = *createTestNode();
+    GlobalParameters* config = new GlobalParameters;
+    config->dimensions = 2;
+    config->maxChildren = 4;
+    TreeLeafNode node = *createTestNode(config);
 
     auto result = node.findPoint(Point({0.1, 0.1}));
     EXPECT_EQ(result.first, 10);
@@ -103,10 +125,15 @@ TEST(TreeLeafNodeTest, FindPoint) {
     result = node.findPoint(Point({0.3, 0.3}));
     EXPECT_EQ(result.first, -1);
     EXPECT_EQ(result.second, -1); // Not found
+
+    delete config;
 }
 
 TEST(TreeLeafNodeTest, RangeQuery) {
-    TreeLeafNode node = *createTestNode();
+    GlobalParameters* config = new GlobalParameters;
+    config->dimensions = 2;
+    config->maxChildren = 4;
+    TreeLeafNode node = *createTestNode(config);
 
     // Query that overlaps with two points
     AbstractBoundedClass* queryRegion = new Region({0.0, 0.0}, {0.1, 0.2});
@@ -125,10 +152,15 @@ TEST(TreeLeafNodeTest, RangeQuery) {
     delete queryRegion;
 
     EXPECT_EQ(results.size(), 0); // No results
+
+    delete config;
 }
 
 TEST(TreeLeafNodeTest, RemovePointByID) {
-    TreeLeafNode node = *createTestNode();
+    GlobalParameters* config = new GlobalParameters;
+    config->dimensions = 2;
+    config->maxChildren = 4;
+    TreeLeafNode node = *createTestNode(config);
 
     // Remove a point by blockID and recordID
     int removed = node.removePoint(10, 100);
@@ -138,10 +170,15 @@ TEST(TreeLeafNodeTest, RemovePointByID) {
     // Try to remove a non-existing point
     removed = node.removePoint(99, 999);
     EXPECT_EQ(removed, -1); // Not found
+
+    delete config;
 }
 
 TEST(TreeLeafNodeTest, RemovePointByPoint) {
-    TreeLeafNode node = *createTestNode();
+    GlobalParameters* config = new GlobalParameters;
+    config->dimensions = 2;
+    config->maxChildren = 4;
+    TreeLeafNode node = *createTestNode(config);
 
     // Remove a point by Point object
     int removed = node.removePoint(Point({0.1, 0.1}));
@@ -151,28 +188,37 @@ TEST(TreeLeafNodeTest, RemovePointByPoint) {
     // Try to remove a non-existing point
     removed = node.removePoint(Point({0.9, 0.9}));
     EXPECT_EQ(removed, -1); // Not found
+
+    delete config;
 }
 
 TEST(TreeLeafNodeTest, GetSerializedSize) {
     for (int dimensions = 1; dimensions <= 20; ++dimensions) {
         for (int maxChildren = 1; maxChildren <= 1000; ++maxChildren) {
-            EXPECT_EQ(TreeLeafNode::getSerializedSize(maxChildren, dimensions), 
-                        TreeNode::getSerializedSize(dimensions) + maxChildren * ( // base node + M *
-                            Point::getSerializedSize(dimensions) + // Points
+            GlobalParameters* config = new GlobalParameters;
+            config->dimensions = dimensions;
+            config->maxChildren = maxChildren;
+            EXPECT_EQ(TreeLeafNode::getSerializedSize(config), 
+                        TreeNode::getSerializedSize(config) + config->maxChildren * ( // base node + M *
+                            Point::getSerializedSize(config) + // Points
                             sizeof(int) * 2 // blockIDs and recordIDs
                         ));
+            delete config;
         }
     }
 }
 
 TEST(TreeLeafNodeTest, SerializeAndDeserialize) {
-    TreeLeafNode node = *createTestNode();
+    GlobalParameters* config = new GlobalParameters;
+    config->dimensions = 2;
+    config->maxChildren = 4;
+    TreeLeafNode node = *createTestNode(config);
 
-    std::vector<char> serializedData = node.serialize();
+    std::vector<char> serializedData = node.serialize(config);
     // VERY IMPORTANT!!!
-    EXPECT_EQ(serializedData.size(), TreeLeafNode::getSerializedSize(4, 2));
+    EXPECT_EQ(serializedData.size(), TreeLeafNode::getSerializedSize(config));
 
-    TreeLeafNode deserializedNode = TreeLeafNode::deserialize(serializedData, 4, 2);
+    TreeLeafNode deserializedNode = TreeLeafNode::deserialize(config, serializedData);
 
     EXPECT_EQ(deserializedNode.getID(), node.getID());
     EXPECT_EQ(deserializedNode.getLevel(), node.getLevel());
@@ -187,4 +233,6 @@ TEST(TreeLeafNodeTest, SerializeAndDeserialize) {
         EXPECT_EQ(deserializedNode.getBlockIDs()[i], node.getBlockIDs()[i]);
         EXPECT_EQ(deserializedNode.getRecordIDs()[i], node.getRecordIDs()[i]);
     }
+
+    delete config;
 }

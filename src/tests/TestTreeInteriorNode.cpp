@@ -2,7 +2,11 @@
 #include "treeinteriornode.h"
 
 TEST(TreeInteriorNodeTest, ConstructorAndGetters) {
-    int maxChildren = 3;
+    GlobalParameters* config = new GlobalParameters;
+    config->dimensions = 2;
+    config->maxChildren = 3;
+
+
     int id = 1;
     int level = 1;
     int parentID = -1;
@@ -15,7 +19,7 @@ TEST(TreeInteriorNodeTest, ConstructorAndGetters) {
         Region() // Last one is empty
     }; 
 
-    TreeInteriorNode node(id, maxChildren, level, parentID, rectangle, childrenIDs, childrenBoundingBoxes);
+    TreeInteriorNode node(config, id, level, parentID, rectangle, childrenIDs, childrenBoundingBoxes);
 
     // Make sure we're not running into same pointer or something
     rectangle = Region(std::vector<double>{0.0, 0.0}, std::vector<double>{1.0, 1.0});
@@ -29,10 +33,15 @@ TEST(TreeInteriorNodeTest, ConstructorAndGetters) {
     EXPECT_EQ(node.getChildrenIDs()[0], 2);
     EXPECT_EQ(node.getChildrenIDs()[1], 3);
     EXPECT_EQ(node.getChildrenIDs()[2], -1);
+
+    delete config;
 }
 
 TEST(TreeInteriorNodeTest, AddChild) {
-    int maxChildren = 3;
+    GlobalParameters* config = new GlobalParameters;
+    config->dimensions = 2;
+    config->maxChildren = 3;
+
     int id = 1;
     int level = 1;
     int parentID = -1;
@@ -45,21 +54,24 @@ TEST(TreeInteriorNodeTest, AddChild) {
         Region() // Last one is empty
     }; 
 
-    TreeInteriorNode node(id, maxChildren, level, parentID, rectangle, childrenIDs, childrenBoundingBoxes);
+    TreeInteriorNode node(config, id, level, parentID, rectangle, childrenIDs, childrenBoundingBoxes);
 
     Region newChildRegion(std::vector<double>{0.25, 0.25}, std::vector<double>{0.75, 0.75});
-    node.addChild(4, newChildRegion);
+    node.addChild(config, 4, newChildRegion);
 
     // Successful addition
     EXPECT_EQ(node.getChildrenIDs()[2], 4);
     EXPECT_EQ(node.getNumChildren(), 3);
     // Unsuccessful addition (already full)
-    EXPECT_THROW(node.addChild(5, newChildRegion), std::overflow_error); 
+    EXPECT_THROW(node.addChild(config, 5, newChildRegion), std::overflow_error); 
     EXPECT_EQ(node.getNumChildren(), 3);
 }
 
 TEST(TreeInteriorNodeTest, RemoveChild) {
-    int maxChildren = 3;
+    GlobalParameters* config = new GlobalParameters;
+    config->dimensions = 2;
+    config->maxChildren = 3;
+    
     int id = 1;
     int level = 1;
     int parentID = -1;
@@ -72,7 +84,7 @@ TEST(TreeInteriorNodeTest, RemoveChild) {
         Region() // Last one is empty
     }; 
 
-    TreeInteriorNode node(id, maxChildren, level, parentID, rectangle, childrenIDs, childrenBoundingBoxes);
+    TreeInteriorNode node(config, id, level, parentID, rectangle, childrenIDs, childrenBoundingBoxes);
 
     // First, remove a child that exists from the two children
     EXPECT_EQ(node.removeChild(2), 0);
@@ -101,7 +113,10 @@ TEST(TreeInteriorNodeTest, RemoveChild) {
 }
 
 TEST(TreeInteriorNodeTest, BoundingBoxUpdate) {
-    int maxChildren = 3;
+    GlobalParameters* config = new GlobalParameters;
+    config->dimensions = 2;
+    config->maxChildren = 3;
+    
     int id = 1;
     int level = 1;
     int parentID = -1;
@@ -114,17 +129,17 @@ TEST(TreeInteriorNodeTest, BoundingBoxUpdate) {
         Region() // Last one is empty
     }; 
 
-    TreeInteriorNode node(id, maxChildren, level, parentID, rectangle, childrenIDs, childrenBoundingBoxes);
+    TreeInteriorNode node(config, id, level, parentID, rectangle, childrenIDs, childrenBoundingBoxes);
 
     // Add a child that expands the bounding box
     Region newChildRegion(std::vector<double>{-0.5, -0.5}, std::vector<double>{1.5, 1.5});
-    node.addChild(4, newChildRegion);
+    node.addChild(config, 4, newChildRegion);
     Region rectangleAfterAddition = Region::boundingBox(std::vector<AbstractBoundedClass*>{&rectangle, &newChildRegion});
     
     // The bounding box should now encompass the new child
     EXPECT_EQ(node.getBoundingBox(), rectangleAfterAddition);
     // Overfill to check it doesn't change the bounding box
-    EXPECT_THROW(node.addChild(5, newChildRegion), std::overflow_error);
+    EXPECT_THROW(node.addChild(config, 5, newChildRegion), std::overflow_error);
     EXPECT_EQ(node.getBoundingBox(), rectangleAfterAddition);
     // Remove the child and check if the bounding box updates correctly
     node.removeChild(4);
@@ -142,16 +157,23 @@ TEST(TreeInteriorNodeTest, GetSerialisedSize) {
     // Code should be quick so test all options from 1 to some high number
     for (int dimensions = 1; dimensions <= 20; ++dimensions) {
         for(int maxChildren = 1; maxChildren <= 1000; ++maxChildren) {
-            EXPECT_EQ(TreeInteriorNode::getSerializedSize(maxChildren, dimensions), 
-                      TreeNode::getSerializedSize(dimensions) + 
+            GlobalParameters* config = new GlobalParameters;
+            config->dimensions = dimensions;
+            config->maxChildren = maxChildren;
+            EXPECT_EQ(TreeInteriorNode::getSerializedSize(config), 
+                      TreeNode::getSerializedSize(config) + 
                       // Plus one ID and one Region per child
-                      maxChildren * (sizeof(int) + Region::getSerializedSize(dimensions)));
+                      maxChildren * (sizeof(int) + Region::getSerializedSize(config)));
+            delete config;
         }
     }
 }
 
 TEST(TreeInteriorNodeTest, SerializeAndDeserialize) {
-    int maxChildren = 3;
+    GlobalParameters* config = new GlobalParameters;
+    config->dimensions = 2;
+    config->maxChildren = 3;
+    
     int id = 1;
     int level = 1;
     int parentID = -1;
@@ -164,13 +186,13 @@ TEST(TreeInteriorNodeTest, SerializeAndDeserialize) {
         Region() // Last one is empty
     }; 
 
-    TreeInteriorNode originalNode(id, maxChildren, level, parentID, rectangle, childrenIDs, childrenBoundingBoxes);
+    TreeInteriorNode originalNode(config, id, level, parentID, rectangle, childrenIDs, childrenBoundingBoxes);
     
-    std::vector<char> serializedData = originalNode.serialize();
+    std::vector<char> serializedData = originalNode.serialize(config);
     // VERY IMPORTANT!!!
-    EXPECT_EQ(serializedData.size(), TreeInteriorNode::getSerializedSize(maxChildren, rectangle.getStart().size()));
+    EXPECT_EQ(serializedData.size(), TreeInteriorNode::getSerializedSize(config));
     
-    TreeInteriorNode deserializedNode = TreeInteriorNode::deserialize(serializedData, maxChildren, rectangle.getStart().size());
+    TreeInteriorNode deserializedNode = TreeInteriorNode::deserialize(config, serializedData);
     
     EXPECT_EQ(originalNode.getID(), deserializedNode.getID());
     EXPECT_EQ(originalNode.getLevel(), deserializedNode.getLevel());
@@ -180,7 +202,10 @@ TEST(TreeInteriorNodeTest, SerializeAndDeserialize) {
 }
 
 TEST(TreeInteriorNodeTest, RangeQuery) {
-    int maxChildren = 3;
+    GlobalParameters* config = new GlobalParameters;
+    config->dimensions = 2;
+    config->maxChildren = 3;
+    
     int id = 1;
     int level = 1;
     int parentID = -1;
@@ -193,7 +218,7 @@ TEST(TreeInteriorNodeTest, RangeQuery) {
         Region() // Last one is empty
     }; 
 
-    TreeInteriorNode node(id, maxChildren, level, parentID, rectangle, childrenIDs, childrenBoundingBoxes);
+    TreeInteriorNode node(config, id, level, parentID, rectangle, childrenIDs, childrenBoundingBoxes);
 
     // Query that overlaps with both children
     Region queryRegion(std::vector<double>{0.25, 0.25}, std::vector<double>{0.75, 0.75});
@@ -217,7 +242,7 @@ TEST(TreeInteriorNodeTest, RangeQuery) {
     EXPECT_TRUE(result.empty());
 
     // Test query on full node
-    node.addChild(4, Region(std::vector<double>{0.1, 0.1}, std::vector<double>{0.2, 0.2}));
+    node.addChild(config, 4, Region(std::vector<double>{0.1, 0.1}, std::vector<double>{0.2, 0.2}));
     queryRegion = Region(std::vector<double>{0.0, 0.0}, std::vector<double>{1.0, 1.0});
     result = node.rangeQuery(queryRegion);
 

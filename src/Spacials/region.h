@@ -10,6 +10,7 @@
 class Region: public AbstractBoundedClass, public Storable {
     // This class represents a multi-dimensional rectangular region defined by its start and end coordinates.
     // It is derived from AbstractBoundedClass to ensure it can be used in a bounded context.
+    // TODO: Replace .size() with dimensions from GlobalParameters in methods that require it.
 private:
     std::vector<double> start; // Starting coordinates of the region
     std::vector<double> end;   // Ending coordinates of the region
@@ -35,9 +36,9 @@ public:
     static Region boundingBox(const std::vector<AbstractBoundedClass*>& objects);
 
     // Storage stuff:
-    std::vector<char> serialize() const override;
-    static int getSerializedSize(int dimensions);
-    static Region deserialize(const std::vector<char>& data, int dimensions);
+    std::vector<char> serialize(GlobalParameters* config) const override;
+    static int getSerializedSize(GlobalParameters* config);
+    static Region deserialize(GlobalParameters* config, const std::vector<char>& data);
     
 };
 

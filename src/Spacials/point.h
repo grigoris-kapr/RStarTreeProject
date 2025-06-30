@@ -25,12 +25,12 @@ public:
     const std::vector<double>& getStart() const override { return coords; }
     const std::vector<double>& getEnd() const override { return coords; }
     // For printing the point, NOT for serialization
-    std::string toString() const;
+    std::string toString(GlobalParameters* config) const;
 
     // Storage stuff:
-    std::vector<char> serialize() const override;
-    static Point deserialize(const std::vector<char>& data, int dimensions);
-    static int getSerializedSize(int dimensions);
+    std::vector<char> serialize(GlobalParameters* config) const override;
+    static Point deserialize(GlobalParameters* config, const std::vector<char>& data);
+    static int getSerializedSize(GlobalParameters* config);
 };
 
 bool operator==(const Point& lhs, const Point& rhs);

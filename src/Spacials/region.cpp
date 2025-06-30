@@ -107,9 +107,8 @@ bool operator==(const Region& lhs, const Region& rhs) {
 
 
 // Serialize the object to a string representation
-std::vector<char> Region::serialize() const {
-    size_t dimensions = start.size();
-    if (end.size() != dimensions) {
+std::vector<char> Region::serialize(GlobalParameters* config) const {
+    if (start.size() != end.size()) {
         throw std::invalid_argument("Mismatched start/end dimensions during serialization");
     }
 
@@ -119,19 +118,19 @@ std::vector<char> Region::serialize() const {
 }
 
 // Deserialize the object from a string representation
-Region Region::deserialize(const std::vector<char>& data, int dimensions) {
-    if (data.size() < 2 * dimensions * sizeof(double)) {
+Region Region::deserialize(GlobalParameters* config, const std::vector<char>& data) {
+    if (data.size() < 2 * config->dimensions * sizeof(double)) {
         throw std::invalid_argument("Invalid data size for Region deserialization. \
-            Expected " + std::to_string(2 * dimensions * sizeof(double)) + " bytes, got " + std::to_string(data.size()) + ".");
+            Expected " + std::to_string(2 * config->dimensions * sizeof(double)) + " bytes, got " + std::to_string(data.size()) + ".");
     }
 
-    std::vector<double> start = Storable::deserializeDoubles(data, 0, dimensions);
-    std::vector<double> end = Storable::deserializeDoubles(data, dimensions * sizeof(double), dimensions);
+    std::vector<double> start = Storable::deserializeDoubles(data, 0, config->dimensions);
+    std::vector<double> end = Storable::deserializeDoubles(data, config->dimensions * sizeof(double), config->dimensions);
 
     return Region(start, end);
 }
 
 // Get the size of the serialized object
-int Region::getSerializedSize(int dimensions) {
-    return dimensions * 2 * sizeof(double); // Each dimension has a start and end coordinate
+int Region::getSerializedSize(GlobalParameters* config) {
+    return config->dimensions * 2 * sizeof(double); // Each dimension has a start and end coordinate
 }

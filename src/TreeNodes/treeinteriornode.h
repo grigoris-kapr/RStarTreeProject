@@ -12,17 +12,17 @@ protected:
     void updateBoundingBox();
 
 public:
-    TreeInteriorNode (int id, int maxChildren, int level, int parentID, const Region& rectangle, std::vector<int> childrenIDs, Region* childrenBoundingBoxes = nullptr);
+    TreeInteriorNode (GlobalParameters* config, int id, int level, int parentID, const Region& rectangle, std::vector<int> childrenIDs, Region* childrenBoundingBoxes = nullptr);
     ~TreeInteriorNode ();
     std::vector<int> getChildrenIDs() const { return childrenIDs; }
 
-    std::vector<char> serialize() const override;
-    static TreeInteriorNode deserialize(const std::vector<char>& data, int maxChildren, int dimensions);
-    static int getSerializedSize(int maxChildren, int dimensions);
+    std::vector<char> serialize(GlobalParameters* config) const override;
+    static TreeInteriorNode deserialize(GlobalParameters* config, const std::vector<char>& data);
+    static int getSerializedSize(GlobalParameters* config);
 
     // Interface methods
-    void addChild(int childID, const Region& childBoundingBox);
-    void addChildren(const std::vector<int>& childrenIDs, const std::vector<Region>& childrenBoundingBoxes);
+    void addChild(GlobalParameters* config, int childID, const Region& childBoundingBox);
+    void addChildren(GlobalParameters* config, const std::vector<int>& childrenIDs, const std::vector<Region>& childrenBoundingBoxes);
     int removeChild(int childID);
     std::vector<int> rangeQuery(const AbstractBoundedClass& query) const;
     

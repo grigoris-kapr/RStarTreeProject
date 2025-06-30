@@ -14,13 +14,12 @@ protected:
     int level; // Level of the node in the tree
     int parentID; // ID of the parent node
     int numChildren = 0; // Number of children
-    int maxChildren = 0; // Maximum number of children this node can have
     Region boundingBox; // Bounding box of the node
 
     void updateBoundingBox() { return; } // Pure virtual function but can't make class abstract
 
 public:
-    TreeNode (int id, int maxChildren, int level, int parentID, const Region& boundingBox);
+    TreeNode (int id, int level, int parentID, const Region& boundingBox);
     ~TreeNode ();
 
     bool isLeaf() const { return level == 0; } 
@@ -31,9 +30,9 @@ public:
     int getNumChildren() const { return numChildren; }
     const Region getBoundingBox() const { return boundingBox; }
 
-    std::vector<char> serialize() const override;
-    static TreeNode deserialize(const std::vector<char>& data, int maxChildren, int dimensions);
-    static int getSerializedSize(int dimensions);
+    std::vector<char> serialize(GlobalParameters* config) const override;
+    static TreeNode deserialize(GlobalParameters* config, const std::vector<char>& data);
+    static int getSerializedSize(GlobalParameters* config);
 
 };
 

@@ -2,25 +2,29 @@
 #define STORABLE_H
 
 #include <vector>
+#include "globalparameters.h"
 
 class Storable {
-    // This class represents an abstract storable object that can be serialized and deserialized.
+    // Virtual base class for all storable objects.
+    // TODO: Polymorphism with desetialize and getSerializedSize.
+    // This class represents an **abstract** storable object that can be serialized and deserialized.
     // It is intended to be used as a base class for objects that need to be stored in a database or file.
 public:
-    virtual ~Storable() = default;
+    ~Storable() = default;
     
-    // Serialize the object to a string representation
-    virtual std::vector<char> serialize() const = 0;
+    // Default implementations. Must be overridden in derived classes.
+    virtual std::vector<char> serialize(GlobalParameters* config) const { 
+        throw std::runtime_error("Serialize not implemented for this type.");
+    }
+    static Storable deserialize(GlobalParameters* config, const std::vector<char>& data) { 
+        throw std::runtime_error("Deserialize not implemented for this type.");
+    }
+    static int getSerializedSize(GlobalParameters* config) {
+        throw std::runtime_error("GetSerializedSize not implemented for this type.");
+    }
 
-    /* 
-    =================================================================
-                    NEED TO IMPLEMENT EACH TIME
-    =================================================================
-    Deserialize the object
-    static Storable deserialize(const std::vector<char>& data) = 0;
-
-    Get the size of the serialized object
-    static int getSerializedSize() = 0;
+    /*
+        DATATYPE HANDLING
     */
 
     static std::vector<char> serializeInt(int value);
@@ -39,5 +43,6 @@ public:
     
     static void appendData(std::vector<char>& data, const std::vector<char>& additionalData);
 };
+
 
 #endif // STORABLE_H
