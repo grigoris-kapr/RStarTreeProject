@@ -90,8 +90,8 @@ TEST(TreeLeafNodeTest, AddPoints) {
     EXPECT_THROW(node.addPoints(config, newPoints, newBlockIDs, newRecordIDs), std::overflow_error);
 
     GlobalParameters* config2 = new GlobalParameters;
-    config->dimensions = 2;
-    config->maxChildren = 5;
+    config2->dimensions = 2;
+    config2->maxChildren = 5;
     node = *createTestNode(config2); // Create a new node with maxChildren = 5
 
     node.addPoints(config2, newPoints, newBlockIDs, newRecordIDs);

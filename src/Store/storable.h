@@ -3,6 +3,7 @@
 
 #include <vector>
 #include "globalparameters.h"
+#include <stdexcept>
 
 class Storable {
     // Virtual base class for all storable objects.

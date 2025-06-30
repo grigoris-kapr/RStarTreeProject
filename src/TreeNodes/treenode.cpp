@@ -24,7 +24,7 @@ std::vector<char> TreeNode::serialize(GlobalParameters* config) const {
     Storable::appendData(data, Storable::serializeInt(parentID));
 
     // Serialize the bounding box 
-    Storable::appendData(data, boundingBox.serialize());
+    Storable::appendData(data, boundingBox.serialize(config));
     return data;
 }
 
